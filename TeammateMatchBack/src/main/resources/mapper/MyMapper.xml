@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeff.teammate.mapper.MyMapper">
+
+    <select id="selectUserWithTags" resultType="com.jeff.teammate.model.UserWithTags">
+        select
+            user.id as id,
+            user.userName as userName,
+            user.gender as gender,
+            user.avatarUrl as avatarUrl,
+            user.email as email,
+            user.phone as phone,
+            user.createTime as createTime,
+            user.userState as userState,
+            user.userRole as userRole,
+            tempTags.tags as tags,
+            tempTags.tagsCount as tagsCount
+        from
+            user,
+            (select userId,tags,tagsCount from user_tags where gameName=#{gameName})as tempTags(id,tags,tagsCount)
+        where tempTags.id=user.id and user.userState=1;
+    </select>
+
+    <select id="getMyTags" resultType="java.lang.String">
+        select tags from user_tags where gameName=#{gameName} and userId=#{userId};
+    </select>
+
+    <update id="updateMyTags">
+        update user_tags set tags=#{tags},tagsCount=#{tagsCount} where gameName=#{gameName} and userId=#{userId};
+    </update>
+
+    <insert id="insertMyTags">
+        insert into user_tags(gameName,userId,tags,tagsCount) values (#{gameName},#{userId},#{tags},#{tagsCount});
+    </insert>
+
+</mapper>

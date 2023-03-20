@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeff.teammate.mapper.TagMapper">
+
+    <resultMap id="BaseResultMap" type="com.jeff.teammate.model.Tag">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+            <result property="tagName" column="tagName" jdbcType="VARCHAR"/>
+            <result property="gameName" column="gameName" jdbcType="CHAR"/>
+            <result property="isGroup" column="isGroup" jdbcType="TINYINT"/>
+            <result property="groupName" column="GroupName" jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,createTime,updateTime,
+        isDelete,tagName,gameName,
+        isGroup,GroupName
+    </sql>
+</mapper>
