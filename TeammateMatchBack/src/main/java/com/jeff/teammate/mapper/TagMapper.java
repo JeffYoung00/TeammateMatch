@@ -1,16 +1,15 @@
 package com.jeff.teammate.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
 import com.jeff.teammate.model.Tag;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
-/**
-* @author 21029
-* @description 针对表【tag】的数据库操作Mapper
-* @createDate 2023-03-12 17:48:00
-* @Entity com.jeff.teammate.model.Tag
-*/
-public interface TagMapper extends BaseMapper<Tag> {
+import java.util.List;
 
+@Mapper
+public interface TagMapper {
+    List<Tag> selectTags();
+    int addTag(int gameId,String tagName,String groupName);
+    int deleteTag(int gameId,String tagName);
 }
 
 

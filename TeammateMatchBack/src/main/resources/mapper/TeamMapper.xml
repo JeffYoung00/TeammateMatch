@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeff.teammate.mapper.TeamMapper">
+    <select id="getAllTeams" resultType="com.jeff.teammate.model.Team">
+        select  * from team ;
+    </select>
+    <select id="getTeamById" resultType="com.jeff.teammate.model.Team">
+        select  * from team where id=#{id};
+    </select>
+    <select id="getTeamByNameLimit" resultType="com.jeff.teammate.model.Team">
+        select  * from team where gameId=#{gameId} and teamName like concat('%',#{teamName},'%') limit #{limit};
+    </select>
+    <select id="getLimitTeams" resultType="com.jeff.teammate.model.Team">
+        select * from team where gameId=#{gameId} and tags is null and isPublic=1 and currentSize!=maxSize
+            limit #{limit};
+    </select>
+    <select id="getPublicTeams" resultType="com.jeff.teammate.model.Team">
+        select * from team where isPublic=1 and currentSize!=maxSize and gameId=#{gameId};
+    </select>
+
+
+    <insert id="addTeam" parameterType="com.jeff.teammate.model.Team"
+    useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO team (gameId,ownerId, teamName, maxSize, isPublic, password, description, tags, logo)
+        VALUES (#{gameId},#{ownerId}, #{teamName}, #{maxSize}, #{isPublic}, #{password}, #{description}, #{tags},#{logo});
+    </insert>
+    <delete id="deleteTeamById">
+        delete from team where id=#{id};
+    </delete>
+
+    <update id="minusOne">
+        update team set currentSize=currentSize-1,userIdList=#{userIdList} where id=#{id} ;
+    </update>
+    <update id="addOne">
+        update team set currentSize=currentSize+1,userIdList=#{userIdList} where id=#{id} ;
+    </update>
+    <update id="ownerChanged">
+        update team set ownerId=#{newOwnerId},userIdList=#{userIdList} where id=#{id} ;
+    </update>
+    <update id="ownerLeft">
+        update team set currentSize=currentSize-1,ownerId=#{newOwnerId},userIdList=#{userIdList} where id=#{id} ;
+    </update>
+</mapper>

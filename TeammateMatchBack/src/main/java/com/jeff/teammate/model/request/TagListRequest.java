@@ -5,6 +5,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class SearchTagRequest {
-    List<String> tags;
+public class TagListRequest {
+    private List<Integer> tagIdList;
 }

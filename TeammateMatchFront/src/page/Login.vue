@@ -29,7 +29,7 @@ import {ref} from "vue";
 import axios from "axios";
 import {showSuccessToast,showFailToast} from "vant";
 import {useRouter} from "vue-router";
-
+import {setMe} from "../global/global.js";
 const userName=ref("");
 const password=ref("");
 const router=useRouter();
@@ -50,9 +50,10 @@ const onSubmit=()=> {
         if (response.data.code === 0) {
           showSuccessToast("welcome," + userName.value);
           showSuccessToast(response.data.code + "\n" + response.data.message);
+          setMe(response.data.data);
           //等待一秒之后跳到home
-          //setTimeout( "",1000);
-          //router.push('/home');
+          setTimeout( "",1000);
+          router.back();
         } else {
           showFailToast(response.data.code + "\n" + response.data.message);
         }

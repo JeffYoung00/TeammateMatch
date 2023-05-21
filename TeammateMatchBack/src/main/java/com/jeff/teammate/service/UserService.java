@@ -15,17 +15,21 @@ import java.util.List;
 */
 public interface UserService extends IService<User> {
 
-    long userRegister(String userName,String password,String checkPassword);
+    int userRegister(String userName,String password,String checkPassword);
 
     SafeUser userLogin(String userName, String password, HttpServletRequest httpServletRequest);
 
     List<SafeUser> searchUsersNameLike(String userName, HttpServletRequest httpServletRequest);
 
-    boolean deleteUser(long id,HttpServletRequest httpServletRequest);
+    boolean deleteUser(int id,HttpServletRequest httpServletRequest);
 
     void userLogout(HttpServletRequest request);
 
-    boolean userEdit(HttpServletRequest httpServletRequest, UserEditRequest user);
+    SafeUser userEdit(HttpServletRequest httpServletRequest, UserEditRequest user);
 
-    List<SafeUser> searchUserByTags(HttpServletRequest httpServletRequest,List<String> tags);
+    List<Integer> getMyTags(HttpServletRequest httpServletRequest,int gameId);
+
+    boolean updateMyTags(HttpServletRequest httpServletRequest,int gameId,List<Integer>tagIdList);
+
+    List<SafeUser> searchUserByTags(int gameId,List<Integer>tagIdList);
 }

@@ -6,9 +6,9 @@ public interface UserConstant {
      */
     String USER_LOGIN_STATE="user";
     /**
-     * Session中有GAME_NAME代表用户当前模块
+     * 存当前用户的tag表
      */
-    String GAME_NAME="game";
+    String GAME_TAG_LIST="game";
     /**
      * Role
      */
@@ -19,5 +19,7 @@ public interface UserConstant {
      */
     int offline=0;
     int online=1;
+
+    String salt="Jeff";
 
 }

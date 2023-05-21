@@ -1,24 +1,19 @@
 package com.jeff.teammate.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeff.teammate.constant.ErrorCode;
 import com.jeff.teammate.exception.BusinessException;
+import com.jeff.teammate.mapper.GameMapper;
+import com.jeff.teammate.model.Game;
 import com.jeff.teammate.model.Tag;
-import com.jeff.teammate.mapper.MyMapper;
 import com.jeff.teammate.service.TagService;
 import com.jeff.teammate.mapper.TagMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
 * @author 21029
@@ -28,139 +23,98 @@ import java.util.stream.Collectors;
  * 用户可以修改tag,管理员可以添加group
 */
 @Service
-public class TagServiceImpl extends ServiceImpl<TagMapper, Tag>
-    implements TagService{
+public class TagServiceImpl implements TagService{
 
     @Resource
     TagMapper tagMapper;
 
     @Resource
-    MyMapper myMapper;
+    GameMapper gameMapper;
+
+    //初始化game的tag list和mask
+    @PostConstruct
+    public void gameInit(){
+        List<Tag>tags=tagMapper.selectTags();
+        Game.games=gameMapper.getGames();
+        //根据tags[i]的gameId, 加入相应的games[id].vector
+        //todo 需要保证gameId从0自增
+        for(int i=0;i<tags.size();i++){
+            Game.games.get(tags.get(i).getGameId()).getTags().add(tags.get(i));
+        }
+        for(Game game:Game.games){
+            game.initMask();
+        }
+    }
 
     @Override
-    public List<Tag> gameTags(String gameName){
-        if(gameName==null||gameName.length()==0){
+    public List<Tag> gameTags(int id) {
+        //基本检测
+        if(id>=Game.games.size()||id<0){
+            throw new BusinessException(ErrorCode.GAME_NOT_FOUNT);
+        }
+        return Game.games.get(id).getTags();
+    }
+
+    @Override
+    public boolean addTag(HttpServletRequest httpServletRequest,int gameId, String tagName, String groupName){
+        //基本检测
+        if(StringUtils.isAnyBlank(tagName,groupName)||tagName.length()<2||tagName.length()>10){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        QueryWrapper<Tag>queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("gameName",gameName);
-        return tagMapper.selectList(queryWrapper);
-    }
-
-    @Override
-    public List<String> getGroup(String gameName){
-        QueryWrapper<Tag> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("gameName",gameName);
-        queryWrapper.eq("isGroup",1);
-        return tagMapper.selectList(queryWrapper).stream().map(Tag::getTagName).collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean addGroup(HttpServletRequest httpServletRequest,String gameName,String groupName){
         //权限检测
         ImplUtils.isAdmin(httpServletRequest);
-        //基本检测
-        if(StringUtils.isAnyBlank(gameName,groupName)||groupName.length()<2||groupName.length()>10){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
         //正则检测
         ImplUtils.hasWrongChar(groupName);
-        //已有
-        List<String> groups=getGroup(gameName);
-        if(groups.contains(groupName)){
-            throw new BusinessException(ErrorCode.REGISTERED_TAG);
+        ImplUtils.hasWrongChar(tagName);
+        //
+        if(gameId>=Game.games.size()||gameId<0){
+            throw new BusinessException(ErrorCode.GAME_NOT_FOUNT);
         }
-        //新增
-        Tag tag=new Tag();
-        tag.setTagName(groupName);
-        tag.setGameName(gameName);
-        tag.setIsGroup(1);
-        tagMapper.insert(tag);
-        return true;
-    }
-
-    @Override
-    public boolean deleteGroup(HttpServletRequest httpServletRequest, String gameName, String groupName){
-        //权限检测
-        ImplUtils.isAdmin(httpServletRequest);
-        //基本检测
-        if(StringUtils.isAnyBlank(gameName,groupName)||groupName.length()<2||groupName.length()>10){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        //删除
-        QueryWrapper<Tag>queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("gameName",gameName);
-        queryWrapper.eq("tagName",groupName);
-        return tagMapper.delete(queryWrapper)>0;
-    }
-
-    @Override
-    public boolean addTag(String gameName,String tagName,String groupName){
-        //基本检测
-        if(StringUtils.isAnyBlank(gameName,tagName,groupName)||tagName.length()<2||tagName.length()>10){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        //正则检测
-        ImplUtils.hasWrongChar(groupName);
-        //已有
-        QueryWrapper<Tag> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("gameName",gameName);
-        queryWrapper.eq("tagName",gameName);
-        if(tagMapper.selectCount(queryWrapper)>0){
-            throw new BusinessException(ErrorCode.REGISTERED_TAG);
-        }
-        //新增
-        Tag tag=new Tag();
-        tag.setTagName(tagName);
-        tag.setGameName(gameName);
-        tag.setGroupName(groupName);
-        tag.setIsGroup(0);
-        tagMapper.insert(tag);
-        return true;
-    }
-
-    @Override
-    public boolean deleteTag(String gameName,String tagName){
-        //基本检测
-        if(StringUtils.isAnyBlank(gameName,tagName)||tagName.length()<2||tagName.length()>10){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        //无
-        QueryWrapper<Tag> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("gameName",gameName);
-        queryWrapper.eq("tagName",tagName);
-        return tagMapper.delete(queryWrapper)>0;
-    }
-
-    //返回为null时
-    @Override
-    public String getMyTags(String gameName,long id){
-        String ret=myMapper.getMyTags(gameName,id);
-        if(ret==null){
-            return "\"[]\"";
-        }
-        return ret;
-    }
-
-    //第一次是insert
-    //检查json格式/去重/算长度
-    @Override
-    public boolean updateMyTags(String gameName,long id,String tags){
-        try{
-            ObjectMapper objectMapper=new ObjectMapper();
-            Set<String> userTags = objectMapper.readValue(tags, new TypeReference<Set<String>>(){});
-            int tagsCount=userTags.size();
-            String ret=myMapper.getMyTags(gameName,id);
-            if(ret==null){
-                return myMapper.insertMyTags(gameName,id,tags,tagsCount)>0;
+        //已有同名tag
+        List<Tag>tagList=Game.games.get(gameId).getTags();
+        for(int i=0;i<tagList.size();i++){
+            if(tagName.equals(tagList.get(i).getTagName())&&!tagList.get(i).isDelete()){
+                throw new BusinessException(ErrorCode.REGISTERED_TAG);
             }
-            return myMapper.updateMyTags(gameName,id,tags,tagsCount)>0;
-        }catch(JsonProcessingException je){
+        }
+        //新增
+        Game.games.get(gameId).insertMask();
+        Tag tag=new Tag(gameId,tagName,groupName);
+        tagList.add(tag);
+        //数据库同步
+        tagMapper.addTag(gameId,tagName,groupName);
+        return true;
+    }
+
+    @Override
+    public boolean deleteTag(HttpServletRequest httpServletRequest,int gameId,String tagName){
+        //基本检测
+        if(StringUtils.isAnyBlank(tagName)||tagName.length()<2||tagName.length()>10){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //权限检测
+        ImplUtils.isAdmin(httpServletRequest);
+        //
+        if(gameId>=Game.games.size()||gameId<0){
+            throw new BusinessException(ErrorCode.GAME_NOT_FOUNT);
+        }
+        //
+        List<Tag>tagList=Game.games.get(gameId).getTags();
+        int i=0;
+        for(Tag tag:tagList){
+            if(tagName.equals(tag.getTagName())&&!tag.isDelete()){
+                Game.games.get(gameId).deleteMask(i);
+                tag.setDelete(true);
+                break;
+            }
+            i++;
+        }
+        //数据库同步
+        if(i<tagList.size()){
+            tagMapper.deleteTag(gameId,tagName);
+            return true;
+        }else{
+            return false;
         }
     }
 }
-
-
-
-

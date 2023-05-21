@@ -24,13 +24,6 @@
       <van-button round type="primary" v-on:click="deleteTag">
         删除Tag
       </van-button>
-      <br>
-      <van-button round  type="primary" v-on:click="addGroup">
-        新增Group
-      </van-button>
-      <van-button round type="primary" v-on:click="deleteGroup">
-        删除Group
-      </van-button>
   </van-form>
 
 </template>
@@ -39,26 +32,21 @@
 import {ref} from "vue";
 import axios from "axios";
 import {showFailToast, showSuccessToast} from "vant";
-
+import {getGameId} from "../global/global.js";
+let gameId=getGameId();
 const tagName=ref("");
 const groupName=ref("")
 
 const addTag = () => {
-  send("post","/tag");
+  send("post");
 }
 const deleteTag = () => {
-  send("delete","/tag");
-}
-const addGroup = () => {
-  send("post","/group");
-}
-const deleteGroup = () => {
-  send("delete","/group");
+  send("delete");
 }
 
 const send = (methods,url) => {
-  axios({method:methods,url:'http://localhost:8080/tags'+url,
-      data:{tagName: tagName.value, groupName: groupName.value}})
+  axios({method:methods,url:'http://localhost:8080/tags/tag',
+      data:{gameId:gameId,tagName: tagName.value, groupName: groupName.value}})
       .then(function (response) {
         if (response.data.code === 0) {
           showSuccessToast(response.data.code + "\n" + response.data.message);

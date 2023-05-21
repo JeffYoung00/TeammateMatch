@@ -41,45 +41,31 @@
   </van-form>
 </template>
 <script setup>
-import {getCurrentInstance, onMounted, reactive} from "vue";
+import {onMounted} from "vue";
 import {ref} from "vue";
 import axios from "axios";
 import {showFailToast, showSuccessToast} from "vant";
+import {getMe, setMe} from "../global/global.js";
+import {useRouter} from "vue-router";
 
+const userIn = ref({});
 
-const userIn = reactive({
-  userName:"",
-  gender:"",
-  email:"",
-  phone:""
-});
-const getMe=()=>{
-  axios.post('http://localhost:8080/user/current')
-      .then(function (response) {
-        // 处理成功情况
-        if(response.data.code===0){
-          showSuccessToast(response.data.code+"\n"+response.data.message);
-          userIn.userName=response.data.data.userName;
-          userIn.gender=response.data.data.gender;
-          userIn.email=response.data.data.email;
-          userIn.phone=response.data.data.phone;
-        }else{
-          showFailToast(response.data.code+"\n"+response.data.message);
-        }
-      })
-      .catch(function (error) {
-        console.log(error);
-      })
-}
-onMounted(getMe);
+onMounted(()=>{
+  let user=getMe();
+  userIn.value.userName=user.userName;
+  userIn.value.gender=user.gender;
+  userIn.value.email=user.email;
+  userIn.value.phone=user.phone;
+})
 
 const onSubmit=()=> {
-  axios.post('http://localhost:8080/user/edit', {userName:userIn.userName,gender:userIn.gender,email:userIn.email,phone:userIn.phone
-  })
+  axios.post('http://localhost:8080/user/edit',
+      {userName:userIn.value?.userName,gender:userIn.value?.gender,email:userIn.value?.email,phone:userIn.value?.phone})
   .then(function (response) {
     // 处理成功情况
     if (response.data.code === 0) {
       showSuccessToast(response.data.code+"\n"+response.data.message);
+      setMe(response.data.data);
     } else {
       showFailToast(response.data.code + "\n" + response.data.message);
     }

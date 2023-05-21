@@ -4,7 +4,7 @@ import com.jeff.teammate.model.User;
 import com.jeff.teammate.constant.ErrorCode;
 import com.jeff.teammate.constant.UserConstant;
 import com.jeff.teammate.exception.BusinessException;
-import com.jeff.teammate.model.request.SearchTagRequest;
+import com.jeff.teammate.model.request.TagListRequest;
 import com.jeff.teammate.model.request.UserEditRequest;
 import com.jeff.teammate.model.request.UserLoginRequest;
 import com.jeff.teammate.model.request.UserRegisterRequest;
@@ -23,16 +23,22 @@ import java.util.List;
 public class UserController {
 
     @Resource
-    UserService userService;////??
+    UserService userService;
 
     @PostMapping("/register")
-    public Response<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest){
+    public Response<Integer> userRegister(@RequestBody UserRegisterRequest userRegisterRequest){
+        if(userRegisterRequest==null){
+            throw  new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         return Response.success(userService.userRegister(userRegisterRequest.getUserName(),
                 userRegisterRequest.getPassword(), userRegisterRequest.getCheckPassword()));
     }
 
     @PostMapping("/login")
     public Response<SafeUser> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest httpServletRequest){
+        if(userLoginRequest==null){
+            throw  new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         return Response.success(userService.userLogin(userLoginRequest.getUserName(), userLoginRequest.getPassword(),httpServletRequest));
     }
 
@@ -54,7 +60,10 @@ public class UserController {
     }
 
     @DeleteMapping("/id/{id}")
-    public Response<Boolean> deleteUser(@PathVariable long id, HttpServletRequest httpServletRequest){
+    public Response<Boolean> deleteUser(@PathVariable Integer id, HttpServletRequest httpServletRequest){
+        if(id==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         return Response.success(userService.deleteUser(id,httpServletRequest));
     }
 
@@ -68,12 +77,34 @@ public class UserController {
     }
 
     @PostMapping(("/edit"))
-    public Response<Boolean> userEdit(@RequestBody UserEditRequest user ,HttpServletRequest httpServletRequest){
+    public Response<SafeUser> userEdit(@RequestBody UserEditRequest user ,HttpServletRequest httpServletRequest){
+        if(user==null){
+            throw  new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         return Response.success(userService.userEdit(httpServletRequest,user));
     }
 
-    @PostMapping("/tags")
-    public Response<List<SafeUser>> searchUserByTags(@RequestBody SearchTagRequest tags, HttpServletRequest httpServletRequest){
-        return Response.success(userService.searchUserByTags(httpServletRequest,tags.getTags()));
+    @PostMapping("/searchTags")
+    public Response<List<SafeUser>> searchUserByTags(@RequestParam Integer gameId,@RequestBody List<Integer> tagIdList){
+        if(gameId==null||tagIdList==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        return Response.success(userService.searchUserByTags(gameId,tagIdList));
+    }
+
+    @GetMapping("/myTags")
+    public Response<List<Integer>> getMyTags(HttpServletRequest httpServletRequest, @RequestParam Integer gameId){
+        if(gameId==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        return Response.success(userService.getMyTags(httpServletRequest,gameId));
+    }
+
+    @PostMapping("/myTags")
+    public Response<Boolean> updateMyTags(HttpServletRequest httpServletRequest, @RequestParam Integer gameId,@RequestBody List<Integer> tagIdList){
+        if(gameId==null||tagIdList==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        return Response.success(userService.updateMyTags(httpServletRequest,gameId,tagIdList));
     }
 }

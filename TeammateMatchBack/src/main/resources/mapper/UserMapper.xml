@@ -16,12 +16,24 @@
             <result property="userState" column="userState" jdbcType="TINYINT"/>
             <result property="userRole" column="userRole" jdbcType="TINYINT"/>
             <result property="userPassword" column="userPassword" jdbcType="VARCHAR"/>
+            <result property="vector" column="vector" jdbcType="VARCHAR"/>
+            <result property="teamId" column="teamId" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,createTime,updateTime,
         userName,gender,avatarUrl,
         email,phone,userState,
-        userRole,userPassword
+        userRole,userPassword,vector,teamId
     </sql>
+
+    <update id="deleteTeamId">
+        update user set teamId=null where id=#{id} and teamId IS NOT NULL;
+    </update>
+    <update id="setTeamId">
+        update user set teamId=#{teamId} where id=#{id} and teamId IS NULL;
+    </update>
+    <select id="getTeamId" resultType="integer">
+        select teamId from user where id=#{id};
+    </select>
 </mapper>

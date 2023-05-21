@@ -1,60 +1,29 @@
 package com.jeff.teammate.model;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.TableField;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
-import java.util.Date;
-import lombok.Data;
 
-/**
- *
- * @TableName tag
- */
-@TableName(value ="tag")
-@Data
+@Getter
+@Setter
+@ToString
 public class Tag implements Serializable {
-    /**
-     *
-     */
-    @TableId(type = IdType.AUTO)
-    private Long id;
-
-    /**
-     *
-     */
-    private Date createTime;
-
-    /**
-     *
-     */
-    private Date updateTime;
-
-    /**
-     *
-     */
-    @TableLogic
-    private Integer isDelete;
-
-    /**
-     *
-     */
+    private Integer gameId;
     private String tagName;
-
-    /**
-     * 所属游戏名
-     */
-    private String gameName;
-
-    /**
-     * 分组标签, 1为分组, 0为普通标签
-     */
-    private Integer isGroup;
-
-    /**
-     * 父标签的id
-     */
     private String groupName;
+    private boolean isDelete;
 
-    @TableField(exist = false)
-    private static final long serialVersionUID = 2L;
+    public Tag(){}
+
+    public Tag(int gameId,String tagName,String groupName){
+        this.gameId=gameId;
+        this.tagName=tagName;
+        this.groupName=groupName;
+        this.isDelete=false;
+    }
+
+    private static final long serialVersionUID = 1L;
 }
