@@ -43,7 +43,7 @@ public class UserController {
     }
 
     @PostMapping("/current")
-    public Response<SafeUser> userLogin(HttpServletRequest httpServletRequest){
+    public Response<SafeUser> userCurrent(HttpServletRequest httpServletRequest){
         Object user=httpServletRequest.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
         if(user==null){
             throw new BusinessException(ErrorCode.NOT_LOGIN);
